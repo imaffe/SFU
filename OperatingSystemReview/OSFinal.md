@@ -500,6 +500,88 @@
 
 #### 8. File Systems
 
+- Components of file system : 
+  - application programs
+  - logical file system
+  - file-organization module
+  - basic file system
+  - I/O control
+- File Attributes : 
+  - name
+  - identifier
+  - type
+  - location
+  - size
+  - protection
+  - Information about files are kept in a directory, each file has an entry in the directory.
+  - Q : is directory a file too?
+- File Operations
+  - Create 
+  - Write
+  - Read
+  - Reposition with in file : 
+  - Q what does reposition means
+  - Delete
+  - Truncate
+  - Q what does Truncate mean
+  - Other operations can be composed of these primitives
+  - To perform these operations , a file must be open.
+- Directory : interface
+  - directory is a logical group of files
+  - a directory contains an entry for each file under it
+  - and some systems like Unix treat directories as files
+- Directory Operations 
+  - search for a file
+  - create a file
+  - delete a file
+  - list a directory
+  - rename a file
+  - traverse the file system
+- Directory Structures
+  - Efficiency :  locating a file quickly
+  - Naming : 
+    - two user can have same for different files
+    - same file can have several different names : aliases, links
+  - So tree structured directories are the most common
+    - paths are intuitive for users
+    - Q what does intuitive here means
+- Acyclic graph directories
+  - problems : when files get deleted, links may still point to it.
+- Solutions : symbolic link and hard link
+  - symbolic link : leave the dangling pointer for the user to delete
+  - Q : what is inode of file
+  - hard link : keep a reference count on the file, when are links are deleted the file is deleted
+  - Q : what will happen if i recreate a file with same name? will the softlink still point to the file? or they just have the same name?
+  - to avoid infinite search, we bypass links during directory traversal
+- Mounting : Important
+  - OS is given name of the device and a mount point
+  - OS checks device to make sure it has a valid file system
+  - Q : how OS checks that file system
+  - Then OS makes the new file system available
+- Virtual File Systems
+  - each file system has its own file and directory structure
+  - OS implements a virtual file system layer to avoid difference among file systems
+  - VFS provides a common interface to all file systems so don't need to worry about which file system so don't worry about which file system we use
+    - open()
+    - read()
+    - write()
+    - etc
+- Implementation : On disk and In memory
+  - On disk 
+    - directory stucture
+    - number of blocks
+    - location of free blocks
+    - boot information
+  - In memory
+    - caching to improve performance
+    - manage the file system 
+    - Q : what does the manage the file system means? Why in memory file systems
+- On-disk structures
+  - Boot block
+    - information to boot the OS:
+    - is boot block used for os to know what type it is ? and mount point ?
+  - Volume Control Block
+
 #### 9. Storage
 
 #### 10. Protection
