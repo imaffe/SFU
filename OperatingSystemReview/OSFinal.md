@@ -506,6 +506,7 @@
   - file-organization module
   - basic file system
   - I/O control
+
 - File Attributes : 
   - name
   - identifier
@@ -515,6 +516,7 @@
   - protection
   - Information about files are kept in a directory, each file has an entry in the directory.
   - Q : is directory a file too?
+
 - File Operations
   - Create 
   - Write
@@ -526,10 +528,12 @@
   - Q what does Truncate mean
   - Other operations can be composed of these primitives
   - To perform these operations , a file must be open.
+
 - Directory : interface
   - directory is a logical group of files
   - a directory contains an entry for each file under it
   - and some systems like Unix treat directories as files
+
 - Directory Operations 
   - search for a file
   - create a file
@@ -537,6 +541,7 @@
   - list a directory
   - rename a file
   - traverse the file system
+
 - Directory Structures
   - Efficiency :  locating a file quickly
   - Naming : 
@@ -545,19 +550,24 @@
   - So tree structured directories are the most common
     - paths are intuitive for users
     - Q what does intuitive here means
+
 - Acyclic graph directories
+
   - problems : when files get deleted, links may still point to it.
+
 - Solutions : symbolic link and hard link
   - symbolic link : leave the dangling pointer for the user to delete
   - Q : what is inode of file
   - hard link : keep a reference count on the file, when are links are deleted the file is deleted
   - Q : what will happen if i recreate a file with same name? will the softlink still point to the file? or they just have the same name?
   - to avoid infinite search, we bypass links during directory traversal
+
 - Mounting : Important
   - OS is given name of the device and a mount point
   - OS checks device to make sure it has a valid file system
   - Q : how OS checks that file system
   - Then OS makes the new file system available
+
 - Virtual File Systems
   - each file system has its own file and directory structure
   - OS implements a virtual file system layer to avoid difference among file systems
@@ -566,6 +576,7 @@
     - read()
     - write()
     - etc
+
 - Implementation : On disk and In memory
   - On disk 
     - directory stucture
@@ -576,11 +587,153 @@
     - caching to improve performance
     - manage the file system 
     - Q : what does the manage the file system means? Why in memory file systems
+
 - On-disk structures
   - Boot block
     - information to boot the OS:
     - is boot block used for os to know what type it is ? and mount point ?
-  - Volume Control Block
+  - Volume Control Block : information about  the partition
+    - number of blocks,block size, free block count
+    - UFS calls it superblock, and NTFS calls master file table
+    - UFS : Unix   NTFS : Windows  et2 : Linux
+  - Directory Structure 
+    - UFS used inodes
+    - Q : what is inodes?
+    - NTFS stores related info in the master file table
+  - File Control Block : FCB
+    - size, location of data blocks, file permissions, ownership
+    - Q : Where is FCB in UFS,
+    - UFS calls it inode, NTFS stores this info to master file table
+    - Q : so basically the FCB is located at the start of continuous data blocks of a file?
+    - Q : is super block and directory block connected (in adjacent disk space?)
+
+- In memory structures
+
+  - Mount Table : info on each mounted volume :
+    - Q : what does mount table stores? how to use mount table to find a device in Linux
+    - Q : describe the whole procedure of using a Mount Table to find a file system
+  - Directory Structure Cache : info on recently accessed directories
+  - System wide open file table
+    - copy of the FCB of each open file in the system
+    - info on which process currently using which file
+  - Per-process open-file table : contains an entry for each file opened by this process
+    - pointer to entry in the system-wide open-file table
+    - info regarding the usage of the file by this process : current file pointer, open mode
+    - Q : where is current file pointer stored originally ? FCB ?
+
+- Open a file
+
+  - Search the directory to find the file control block
+    - may need to bring from disk multiple directory blocks into memory, if they are not already cached
+    - create an entry in the per-process open-file table PFT
+    - check whether the system-wide open-file table has an entry in this file
+      - if does, increments its reference count, and make the entry in PFT  point tothis entry
+      - if not, create a new entry in  system-wide open file table, and set reference count to 1
+      - Q : when was reference count first mentioned
+    - return a pointer (file descriptor / handle?) tp the entry in PFT and continue operation using descriptor
+
+- Creating a file
+
+  - allocate a new file control block
+    - Usually FCB are pre-allocated, and find a free FCB is enough
+  - Read relevant directory blocks in memory
+    - update them to reflect the new file, write them back to disk
+    - Q : how a create file really happens ? get current directory or target directory name? find the directory block from disk? and what is the directory block is full that cannot place new FCB in the block ? If finding a new block, are the two blocks continuous?
+    - Allocate free blocks for the data of the file
+
+- Allocation methods
+
+  - first : disk allow random access of blocks
+  - three methods : contiguous, linked indexed
+
+- Contiguous Allocation
+
+  - each file occupies a set of contiguous blocks
+  - need start address and length 
+  - will cause external fragmentation, files may not be able to grow
+
+- Linked Allocation
+
+  - a file is a linked list of blocks
+  - need start block and end block to append to file
+  - expensive random access : must traverse the chain to get to the middle of the file
+  - if one block is corrupted, the chain is broken
+
+- Indexed Allocation
+
+  - bring all pointer together into an index blocks
+  - but will need extra index block for even small files
+  - so use linked index blocks to have a small index block for small index file
+  - or using a multilevel index blocks. have shorter access time but more space overhead
+  - Combined : Used in Unix file system
+    - multilevel and linked
+    - each file has an index block (inode) , which contains : pointer that point to data blocks directly (small files) and point to index blocks . (Unix supports three level of index blocks)
+    - Q : what is the inode differenct from the FCB inode?
+
+- Example : Unix inode
+
+  - ```c
+    fptr = open("/pub/data/file1.txt", "read");
+    read(fptr, buf ,4) ; // read 4 bytes
+    
+    seek(fptr, 12*1024*4 + 4);
+    read(fptr, buf, 4)
+    ```
+
+  - Q : How many disk operations each of the above lines takes?
+
+    - line 1 : 7
+    - line 2 : 1 
+
+  - reading different part of the file may need reading multiple inodes : see line 3 and 4
+
+- Free blocks Location
+
+  - Using bit map : one bit for each block , 0 = occupied, 1 = free
+    - bit map is supported by hardware
+    - But bit map is stored in disk, very slow access.
+    - solution : can cache it in memory but it is not small for large disks
+    - so we can group multiple free blocks to reduce bitmap size
+
+- Free space management
+
+  - Linked list : no waste of disk space, but not easy to get contiguous space
+    - we can solve this by grouping, addresses of n free blocks are stored in the first block, the last block contains addresses to the following n free blocks
+    - keep address of 1st free block and count the following free blocks (very simple, and no need to worry about too many contiguous free blocks cannot be stored in on block)
+
+- Recovery
+
+  - failures : hardware defects, software bugs and external events
+  - simple consistency checking, set a bit on dist before metadata is to be update, reset it after metadata update is complete.
+  - upon reboot, i bit is set, then crash occurred and invoke consistency checking
+  - Log structured file systems
+    - each metadata update to FS is a transaction
+    - considered committed once written to the log
+    - transactions in the log are synchronously written to file system structure
+    - when the file system structures are modified on disk, the transaction is removed from the log
+    - Q : what does the above sentence means?
+    - if file systems crashed, transactions is log are replated
+
+- Network File System (NFS)
+
+  - support different machines, OS , and networks
+  - Mount remote directory over local FS directory 
+  - Q : how is hierachy mounting performed ? why can mounted to a directory not an OS ? any mechanism in this? block-scale explanation required
+  - once mounted, remote directory is accessed transparently?
+    - looks like local directory, but all operations are sent over network
+  - Heterogeneity
+    - RPC (remote procedure call) primiives over
+    - Q : where is RPC first mentioned?
+    - XDR( External Data  Representation) Protocol
+  - Mounting :
+    - supports cascading mounts
+    - Q : what does this graph means?
+
+
+
+   
+
+   
 
 #### 9. Storage
 
