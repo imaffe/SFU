@@ -729,12 +729,6 @@
     - supports cascading mounts
     - Q : what does this graph means?
 
-
-
-   
-
-   
-
 #### 9. Storage
 
 #### 10. Protection
