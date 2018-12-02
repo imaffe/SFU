@@ -733,9 +733,45 @@
 
 #### 10. Protection
 
+- Principles
+  - princeple of least privilege
+  - need to know principles : at any time, a process should be able to access resources it requires to complete its task
+- Domain of Pretiction
+  - domain means set of access rights
+  - right-set is a subset of all valid operations that can be performed on the object
+  - two allocation method: static and dynamic association
+  - dynamic : process can switch from one domian to another to access objects or perform needed operations
+- Realizing Domain
+  - each user is a domain : depends on user'id
+    - user switching to achieve domain switching
+  - each process is a domain : depend on process id
+    - domain switching : message passing between processes 
+    - Q : why message passing can do this
+  - each procedure is a domain : depends on local variables
+    - Q : any implementing this? weird?
+    - domain switching : procedure calls
+- Access Matrix
+  - TODO : this is important and must do it!
+  - Domain switching : need to allow a process to switch domains
+  - change entries of access dynamically
+    - add/remove/copy rights
+  - copy of access right R on object Oi
+    - can copy the access right R with same column
+    - Q : who has this right?
+  - owner of Object O
+    - can add remove access rights to Oi
+  - control of domain D
+    - can add/remove access rights to domain Di
+- Policy vs Mechanism
+  - Operating system provides access matrix rules
+  - Matrix is only manipulated by authorized users
+  - Rules are strictly enforced
+  - User dicate policy
+- Implementation of Access Matrix
+
 #### 11. Assignments 
 
-#### 12. Problem Sets
+
 
 #### 13. Demos
 
