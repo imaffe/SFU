@@ -312,11 +312,147 @@
 ##### Synchronization
 
 - Describe a race condition using  instruction level
+
 - Three condition for solving Critical Section  Problem
   - Mutual Exclusion
   - Progress
   - Bounded Waiting
-- Peterson's Solution
+  - solutions : Disable interrupts during running CS , but will cause unresponsive situation
+    - currently running  code executes without preemption
+
+- Peterson's Solution : Software
+
+  - Assuming that LOAD and STORE instructions are atomic
+
+  - ```c
+    do{
+        flag[i] = true;
+        turn = j;
+        while(flag[j] && turn == j);
+        //critical section
+        flag[i] = false;
+        //remainder section
+    } while(true)
+    ```
+
+  - Q : why set turn to j not i ??
+
+  - turn and flag are shared variables
+
+- Synchronization hardware : atomic instructions
+
+  - test_and_set() : test a memory value and set its value
+
+    - ```c
+      bool test_and_set(bool * target) {
+          bool rv = *target;
+          *target = TRUE;
+          return rv;
+      }
+      
+      // shared lock is initialized to FALSE
+      do{
+          while(test_adn_set(&lock));
+          //critical section
+          lock = FALSE;
+          //remainder section
+      } while(true);
+      // but will cause indefinite waiting
+      ```
+
+    - 
+
+  - compare_and_swap() : swap contents of two memory words if a condition is satisfied
+
+    - ```c
+      int compared_and_swap(int *value, int expected, int new_value){
+          int temp = *value;
+          if(*value == expected)
+              *value = new_value;
+          return temp;
+      }
+      
+      do {
+          while(compare_and_swap(&lock, 0 ,1));
+          // critical section
+          lock = 0;
+          //remainder section
+      } while(true);
+      ```
+
+- Mutual Execution Locks :  Mutex
+
+  - ```c
+    acquire(){
+        while(!available)
+            ;
+        available = false;
+    }
+    // 
+    release(){
+        available = true;
+    }
+    ```
+
+  - this is a spinlock implementation, while waiting it will consume CPU
+
+  - advantage : no context switching, useful when CS is small code
+
+- Semaphores
+
+  - ```c
+    wait(S){
+        while(S <= 0)
+            ;
+        S--;
+    }
+    signal(S){
+        S++;
+    }
+    // non-block version
+    wait(semaphore * S){
+        S->value --;
+        if(S < 0){
+            add to wait list;
+            block();
+        }
+    }
+    signal(semaphore * S){
+        S->value ++;
+        if(S ->value <= 0){
+            remove a process P from wait list;
+            wakeup(P)
+        }
+    }
+    ```
+
+  - S should be initialized to 1
+
+  - we can also have a non-busy waiting implementation
+
+    - using s list structure
+    - block() : suspend the process that invokes it (place the process in the waiting queue)
+    - wakeup() : resumes the execution of blocked process. (move from waiting queue to ready queue)
+    - TODO : review this part and why <0 or <=0
+
+  - wait and signal become CS (must be protected)
+
+    - disable interrupts 
+    - Q : why this only work in uniprocessor systems
+    - busy waiting or spinlocks : multiprocessor systems
+
+  - if want to use semaphore to make sequencial excution : semaphore must be init to 0
+
+  - some issues :
+
+    - signal wait : then no CS protection, multiple CS execute at same time
+    - wait wait : deadlock possible
+
+- Bounded Buffer( Producer - Consumer Problem)
+
+- Readers-Writers Problm
+
+- Dining-Philosophers Problem
 
 #### 5. Deadlocks
 
@@ -731,7 +867,44 @@
 
 #### 9. Storage
 
+- Disk Physical Structure
+  - Disk is viewed as a one-dimensional array of logical blocks
+  - block = sector
+  - block 0 is at the first sector of the first track on the outermost cylinder
+  - then traverse through that track , then tracks on that cylinder, then different cylinder
+  - block address  <cylinder, track, sector>
+  - created through low-level formatting of disk
+  - Q : what s low-level formatting?
+- Disk Scheduling
+  - kernel maps requests to logical block addresses
+  - and request are sent to disk controller : Hardware ?
+  - Q : is that hardware or software
+  - Targets : 
+    - Fast disk access time
+    - High disk bandwidth : bytes transferred per sec between disk and memory
+- Disk Operation
+  - Accessing a block
+    - Move the head to desired track (seek time)
+    - wait for desired sector to rotate under the head(rotational latency time)
+    - transfer the block to a local buffer, then to main memory (transfer time)
+    - we are trying to minimize the seek time, which is the proportional to the seek distance
+- Scheduling Algorithms
+  - TODO : this is a problem in the final exam, do it!
+  - First Come First Served : Benbi algorithm
+  - Shortest Seek Time First : can cause starvation
+  - Q : where is this sequence stored? Hardware implement the algorithm ?
+  - SCAN: Disk move from on end to other servicing requests!
+  - Circular SCAN :treats cylinder as circular lists, if go to end, move to the other end
+  - C-LOOK : only go as far as the last request in each direction
+- How to select one?
+  - Requests for I/o can be influenced by file-allocation mthod
+  - SSTF is common and good
+  - SCAN and CSCAN perform better that has heavy load on disk
+  - SSTF and CLOOK are usually default algorithms
+
 #### 10. Protection
+
+- 
 
 #### 11. Assignments 
 
