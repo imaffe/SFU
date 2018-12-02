@@ -312,13 +312,294 @@
 ##### Synchronization
 
 - Describe a race condition using  instruction level
+
 - Three condition for solving Critical Section  Problem
   - Mutual Exclusion
   - Progress
   - Bounded Waiting
-- Peterson's Solution
+  - solutions : Disable interrupts during running CS , but will cause unresponsive situation
+    - currently running  code executes without preemption
+
+- Peterson's Solution : Software
+
+  - Assuming that LOAD and STORE instructions are atomic
+
+  - ```c
+    do{
+        flag[i] = true;
+        turn = j;
+        while(flag[j] && turn == j);
+        //critical section
+        flag[i] = false;
+        //remainder section
+    } while(true)
+    ```
+
+  - Q : why set turn to j not i ??
+
+  - turn and flag are shared variables
+
+- Synchronization hardware : atomic instructions
+
+  - test_and_set() : test a memory value and set its value
+
+    - ```c
+      bool test_and_set(bool * target) {
+          bool rv = *target;
+          *target = TRUE;
+          return rv;
+      }
+      
+      // shared lock is initialized to FALSE
+      do{
+          while(test_adn_set(&lock));
+          //critical section
+          lock = FALSE;
+          //remainder section
+      } while(true);
+      // but will cause indefinite waiting
+      ```
+
+    - 
+
+  - compare_and_swap() : swap contents of two memory words if a condition is satisfied
+
+    - ```c
+      int compared_and_swap(int *value, int expected, int new_value){
+          int temp = *value;
+          if(*value == expected)
+              *value = new_value;
+          return temp;
+      }
+      
+      do {
+          while(compare_and_swap(&lock, 0 ,1));
+          // critical section
+          lock = 0;
+          //remainder section
+      } while(true);
+      ```
+
+- Mutual Execution Locks :  Mutex
+
+  - ```c
+    acquire(){
+        while(!available)
+            ;
+        available = false;
+    }
+    // 
+    release(){
+        available = true;
+    }
+    ```
+
+  - this is a spinlock implementation, while waiting it will consume CPU
+
+  - advantage : no context switching, useful when CS is small code
+
+- Semaphores
+
+  - ```c
+    wait(S){
+        while(S <= 0)
+            ;
+        S--;
+    }
+    signal(S){
+        S++;
+    }
+    // non-block version
+    wait(semaphore * S){
+        S->value --;
+        if(S < 0){
+            add to wait list;
+            block();
+        }
+    }
+    signal(semaphore * S){
+        S->value ++;
+        if(S ->value <= 0){
+            remove a process P from wait list;
+            wakeup(P)
+        }
+    }
+    ```
+
+  - S should be initialized to 1
+
+  - we can also have a non-busy waiting implementation
+
+    - using s list structure
+    - block() : suspend the process that invokes it (place the process in the waiting queue)
+    - wakeup() : resumes the execution of blocked process. (move from waiting queue to ready queue)
+    - TODO : review this part and why <0 or <=0
+
+  - wait and signal become CS (must be protected)
+
+    - disable interrupts 
+    - Q : why this only work in uniprocessor systems
+    - busy waiting or spinlocks : multiprocessor systems
+
+  - if want to use semaphore to make sequencial excution : semaphore must be init to 0
+
+  - some issues :
+
+    - signal wait : then no CS protection, multiple CS execute at same time
+    - wait wait : deadlock possible
+
+- Bounded Buffer( Producer - Consumer Problem)
+
+  - ```c
+    while(true){
+        wait(empty);
+        wait(mutex);
+        //add item to buffer
+        signal(mutex);
+        signal(full);
+    }
+    
+    //consumer
+    while(true){
+        wait(full);
+        wait(mutex);
+        // remove
+        signal(mutex);
+        signal(empty);
+    }
+    ```
+
+  - TODO : how to declare these semaphore types?
+
+  - mutex init to 1
+
+- Readers-Writers Problem
+
+  - rw_mutex = 1; mutex = 1; read_count = 0;
+
+  - ```c
+    //reader
+    while(true){
+        wait(mutex);
+        read_count++;
+        if(read_count 
+    }
+    ```
+
+  - when there is a reading, no write permited
+
+  - Q : why there cannot be multiple reader read the same part? at a time there would be only one  reader at a time but that is not good
+
+  - maybe because there are deadlock if there are multiple waits rw_mutex
+
+  - Q : there is a serious question, why use two mutex part int reader procedure?
+
+  - Q : what will happen if a seconder reader added read count but never waited for the rw_mutex
+
+  - still go into reading part ? this is good because when read_count is bigger than 1 there is no need to have the rw_mutex again, it still can be critical section.
+
+  - Good for application with more readers than writers, with reader_write lock
+
+  - require more overhead to establish than semaphores 
+
+  - Q : why?
+
+- Dining-Philosophers Problem
+
+  - ```c
+    
+    ```
+
+  - solution :pick chopsticks only if both are available
+
+  - TODO : implement this in code
+
+  - odd philosopher picks left chopst ick first,
+
+- Monitors
+
+  - a high-level abstraction for process synchronization : compliler takes care of mutual exclusion
+  - Q: what will happen if no wait and then signal of condition ?
+  - signal will have no effect if no process is suspending
+
+- Synchronization and priorities
+
+  - ORIORITY INHERITANCE
 
 #### 5. Deadlocks
+
+- Four conditions of deadlock
+
+  - mutual exclusion
+  - no preemption
+  - hold and wait
+  - circular wait
+
+- Resource Allocation Graph
+
+- Deadlock Prevention 
+
+  - To break one of the four conditions to make deadlock never happen, like static guarantee
+  - Hold and wait
+    - solution 1 : a Process requests a resource only if it does not hold other resources
+    - solution 2 : request all of its resource at beginning of execution
+    - disadvantage : very low resource utilization, starvation possible
+  - circular wait
+    - impose a total ordering on all resource types,requests resources only in increasing order of ID
+  - no preemption
+    - Resources whose states cannot be easily saved
+    - Q : why this is not easily saved
+    - Atomicity
+    - Q : why this break atomicity
+
+- Deadlock Avoidance
+
+  - check if possible deadlock during assignment, like dynamic guarantee
+  - each process declares the maximum number of resources of each type that it may need
+  - OS decide if the pretend issue result the system in a safe state
+  - Safe State
+    - Definition of Safe State
+    - TODO : explain this safe state definition : ordering of resources
+
+- Resource Allocation Algorithm : for single resource
+
+  - dash line : future claim edge,  and request edge, assignment edge
+  - Q : the definition of slide 20 is wrong ?
+
+- Banker' Algorithm
+
+  -  Data Structure specification	
+       -  Available[i] = k :  instances of current left resources of type i is k 
+       -  Max(i)[j] = k : Pi will need k instance of resource j
+       -  Allocation(i)[j] : Pi currently has k instance of resource j
+       -  Need(i)[j] : Can be obtained by max and allocation array
+  -  Safe-state algorithm
+     -  Let Work = Available
+     -  Finish[i] = False at first
+     -  Work stores the possible available resource, if a process can finish under current Work array, then add all allocated resource of Process i to work array , and find next possible process that can finish job under new Work array. If all finish can be true, then safe
+  -  Resource Request algorithm
+     -  decide if the allocation can happen
+     -  Q : do we decide on request or assignment ?
+     -  if request smaller bigger than available , then cannot allocate, otherwise
+     -  Pretend the request can be done
+     -  then do the request 
+     -  Q : suppose the request result in safe state : add a request edge or assignment edge ?
+
+- Deadlock Detection and recovery
+
+  - or some OS ignore the problem and pretend deadlock never happen
+  - TODO : the detection algorithm on book
+  - when to invoke : depends on how often a deadlock is likely to occur
+    - once every hour or when CPU utilization is less than a number
+    - on for each disjoint cycle will need to be rolled back
+  - Recovery 
+    - abort all
+    - abort one process at a time until the deadlock cycle eliminated
+  - Victim Choice
+    - priority, how longer to complete : kill new beginners
+    - always kill the one who has executed least
+    - can cause starvation if always chosen as victim
+
 
 #### 6. Memory Management
 
@@ -730,6 +1011,41 @@
     - Q : what does this graph means?
 
 #### 9. Storage
+
+- Disk Physical Structure
+  - Disk is viewed as a one-dimensional array of logical blocks
+  - block = sector
+  - block 0 is at the first sector of the first track on the outermost cylinder
+  - then traverse through that track , then tracks on that cylinder, then different cylinder
+  - block address  <cylinder, track, sector>
+  - created through low-level formatting of disk
+  - Q : what s low-level formatting?
+- Disk Scheduling
+  - kernel maps requests to logical block addresses
+  - and request are sent to disk controller : Hardware ?
+  - Q : is that hardware or software
+  - Targets : 
+    - Fast disk access time
+    - High disk bandwidth : bytes transferred per sec between disk and memory
+- Disk Operation
+  - Accessing a block
+    - Move the head to desired track (seek time)
+    - wait for desired sector to rotate under the head(rotational latency time)
+    - transfer the block to a local buffer, then to main memory (transfer time)
+    - we are trying to minimize the seek time, which is the proportional to the seek distance
+- Scheduling Algorithms
+  - TODO : this is a problem in the final exam, do it!
+  - First Come First Served : Benbi algorithm
+  - Shortest Seek Time First : can cause starvation
+  - Q : where is this sequence stored? Hardware implement the algorithm ?
+  - SCAN: Disk move from on end to other servicing requests!
+  - Circular SCAN :treats cylinder as circular lists, if go to end, move to the other end
+  - C-LOOK : only go as far as the last request in each direction
+- How to select one?
+  - Requests for I/o can be influenced by file-allocation mthod
+  - SSTF is common and good
+  - SCAN and CSCAN perform better that has heavy load on disk
+  - SSTF and CLOOK are usually default algorithms
 
 #### 10. Protection
 
