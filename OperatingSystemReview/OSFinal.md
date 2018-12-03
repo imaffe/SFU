@@ -9,6 +9,7 @@
   - traps are software-generated interrupts due to :
     - divide by zero, illegal memory access
     - request for os services(system calls)
+    - Q: is system call a ISR ? what is the rel
 - user and kernel
   - kernel mode can execute privileged instructions
   - hardware execute privileged instructions only in kernel mode
@@ -1084,10 +1085,54 @@
   - Rules are strictly enforced
   - User dicate policy
 - Implementation of Access Matrix
+  - Global Table : large and sparse
+    - Grouping can reduce size
+    - Q : how was this done?
+    - repetition of access rights for defaults
+  - Access Control List : each column(object) has a list of domains that can access it
+    - <D1, {Read}>, <D3,{Execute}>
+    - can support default rights
+    - Q : how was this done?
+    - but difficult to determine access rights of a domain
+  - Capability List : Each row has a list of objects and what operations are allowed on them
+    - But difficult to revoke capabilities of an object
+- Revocation of access rights
+  - easy with CL but difficult with capability list
+  - Back-pointers:
+    - pointers maintained with object to capabilities
+  - Indirection
+    - capabilities point to entry in global table
+    - Q : only pointer to a specific place in a global state.
+    - Q : why need to searching table and deleting the entry?
+  - Reacquisition
+    - Periodically delete capability from each domain ?
+  - Keys
+    - Objects have a master key,
+    - capabilities have keys which are copy of master key
+    - Revocation done by changing the master key
+    - Q : change the master key held by objects? How was this Done? change the domain's key or the object's key?
+    - selective revocation done by holding multiple key per object?
+    - Q : why is this selective ? 
+  - combination of capabilities and ACL.
+    - first search ACL ,then if guaranteed then capacity is added to the process. Other access use capabilites list for faster check
+    - Q : how is this related to file access? Keep a handle in the process?
+  - Protection in Unix
+    - Owner : Group : Universe    rwx rwx rwx filename
+    - r on dir means can list files, x means can open files
+    - can create ACL on demand for complex access control
+      - setfacl
+      - setuid using chmod u+s / setgid
+  - Security
+    - Trojan : sear
+      - ch paths getting misued? 
+      - Q how was this done
+      - often related to principle of least privilege
+    - Trap door : like back doors
+    - Virus
 
 #### 11. Assignments 
 
-
+#### 12. Problem sets
 
 #### 13. Demos
 
