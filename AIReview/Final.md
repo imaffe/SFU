@@ -144,14 +144,22 @@
 - inference by enumeration
 - inference using irrelevant variables
 - Temporal Probability Models: Markov Chain
-- 
-- 
 
 #### 10. Decision Tree learning
 
 #### 11. Neural Network
 
 #### 13. HW4
+
+#### 14. Problem Prediction
+
+1. Bayesian Networks Probability Calculation
+2. Decision Tree Learning Calculation
+3. Markov Chain Calculation
+4. Minimax Value and alpha-beta pruning
+5. Constraint Satisfaction Problem
+6. Arc Consistency Algorithm
+7. Back Propagation and perceptron calculation
 
 
 
