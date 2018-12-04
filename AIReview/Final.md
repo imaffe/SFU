@@ -153,13 +153,30 @@
 
 #### 14. Problem Prediction
 
-1. Bayesian Networks Probability Calculation
-2. Decision Tree Learning Calculation
-3. Markov Chain Calculation
-4. Minimax Value and alpha-beta pruning
-5. Constraint Satisfaction Problem
-6. Arc Consistency Algorithm
-7. Back Propagation and perceptron calculation
+
+
+1. Propositional Logic
+   1. 
+2. Search
+   1. **A star and best search**
+3. Game Search
+   1. **Minimax and alpha beta search**
+4. Constraint Satisfaction
+   1. **Constraint Satisfaction**
+   2. **Arc consistency algorithm**
+5. FOL
+   1. **give some formula, use them to infer a formula**
+   2. **convert from FOL to PP or vice versa**
+6. Planning
+   1. **design a planning problem from a real question**
+7. Probability
+   1. **Condition Probability and Joint Probability**
+8. Bayesian
+   1. **calculate the probability of an event according to a network**
+9. Decision Tree
+   1. **Construct A Decision Tree**
+10. Neural Network
+    1. **back propagation and perceptron**
 
 
 

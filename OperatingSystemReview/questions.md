@@ -64,6 +64,17 @@
 - 为啥Minor Page  Fault里面可以有动态的allocate physical ？
   - 可能直到那块memory真正被用到的时候才给，并不是在malloc的时候分配，不过这个为啥就是minor了？
 - TODO ： virtual page replacement algorithms
+- spinlock 有可能导致在CPU上等待IO完成吗
+- 请求IO 之后的PCB 会到哪里去呢？Wait queue 吗？
+- 用page fault rate 控制thrashing 是个gloabal allocation 吗？
+- slab allocation 对象会跨过某个page吗？
+- 我们有讲kernel维护的一个page pool吗？可能一个page会被放到那个page pool 里面并且没有被放回磁盘。
+
+#### 8. File Systems
+
+- index / linked / contiguous allocation  访问/a/b/c 各需要多少次 disk 访问？ inode 和 index block 是不同的Block吧，那应该就是有问题的阿？树上题目的答案。
+
+
 
 
 
